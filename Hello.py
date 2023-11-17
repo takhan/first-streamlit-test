@@ -27,7 +27,7 @@ def run():
     st.write("# :balloon: Welcome to Streamlit! 👋")
 
     st.sidebar.success("Select a demo above.")
-
+    record = st.button(':violet[Record Audio] 🔍')
     st.markdown(
         """
         Streamlit is an open-source app framework built specifically for
