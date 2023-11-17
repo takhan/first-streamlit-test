@@ -56,7 +56,6 @@ def get_ice_servers():
     client = Client(account_sid, auth_token)
 
     try:
-        print("Turn server attempted")
         token = client.tokens.create()
     except TwilioRestException as e:
         st.warning(
