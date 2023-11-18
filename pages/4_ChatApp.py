@@ -32,6 +32,7 @@ def in_recorder_factory() -> MediaRecorder:
 def out_recorder_factory() -> MediaRecorder:
     return MediaRecorder(str(out_file), format="mp4")
 
+
 def send_message(transcript):
     st.session_state.messages.append({"role": "user", "content": transcript})
     with st.chat_message("user"):
@@ -40,31 +41,35 @@ def send_message(transcript):
     
 
 def ai_response():
-    with st.chat_message("assistant"):
-        messenger_response = ""
-        response = client.chat.completions.create(
-            model=st.session_state["openai_model"],
-            messages=[
-                {"role": m["role"], "content": m["content"]}
-                for m in st.session_state.messages
-            ],   
-        )
-        messenger_response = response.model_dump()['choices'][0]['message']['content']
-        print(messenger_response)
-        st.markdown(messenger_response)
+    messenger_response = ""
+    response = client.chat.completions.create(
+        model=st.session_state["openai_model"],
+        messages=[
+            {"role": m["role"], "content": m["content"]}
+            for m in st.session_state.messages
+        ],   
+    )
+    messenger_response = response.model_dump()['choices'][0]['message']['content']
+    print(messenger_response)
     print("Response to add is: "+messenger_response)
     st.session_state.messages.append({"role": "assistant", "content": messenger_response})
+    with st.chat_message("assistant"):
+        print("marking down")
+        st.markdown(messenger_response)
+ 
 
 if "openai_model" not in st.session_state:
     st.session_state["openai_model"] = "gpt-3.5-turbo"
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
+    st.session_state.messages.append({"role": "system", "content": "You are interviewing me for a job. After I greet you, respond to my greeting and ask me a typical behavioral interview question. Once I have answered the question, evaluate how well I answered it."})
 
 for message in st.session_state.messages:
     print(message)
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+    if message["role"] is not "system":
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
 
 
 if prompt := st.chat_input("Or Type Instead!"):

@@ -14,7 +14,8 @@
 
 import streamlit as st
 from streamlit.logger import get_logger
-
+import PyPDF2
+import pandas as pd
 LOGGER = get_logger(__name__)
 
 
@@ -27,7 +28,20 @@ def run():
     st.write("# :balloon: Welcome to Streamlit! 👋")
 
     st.sidebar.success("Select a demo above.")
-    record = st.button(':violet[Record Audio] 🔍')
+    uploaded_file = st.file_uploader("Choose a file")
+    if uploaded_file is not None:
+        # creating a pdf reader object
+        pdfReader = PyPDF2.PdfReader(uploaded_file)
+        
+        # printing number of pages in pdf file
+        print(len(pdfReader.pages))
+        
+        # creating a page object
+        pageObj = pdfReader.pages[0]
+        
+        # extracting text from page
+        print(pageObj.extract_text())
+        
     st.markdown(
         """
         Streamlit is an open-source app framework built specifically for
