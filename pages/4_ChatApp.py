@@ -36,10 +36,12 @@ def send_message(transcript):
     st.session_state.messages.append({"role": "user", "content": transcript})
     with st.chat_message("user"):
         st.markdown(transcript)
+    ai_response()
+    
 
+def ai_response():
     with st.chat_message("assistant"):
-        message_placeholder = st.empty()
-        full_response = ""
+        messenger_response = ""
         response = client.chat.completions.create(
             model=st.session_state["openai_model"],
             messages=[
@@ -47,11 +49,11 @@ def send_message(transcript):
                 for m in st.session_state.messages
             ],   
         )
-        full_response = response.model_dump()['choices'][0]['message']['content']
-        print(full_response)
-        #message_placeholder.markdown(full_response + "▌")
-        message_placeholder.markdown(full_response)
-    st.session_state.messages.append({"role": "assistant", "content": full_response})
+        messenger_response = response.model_dump()['choices'][0]['message']['content']
+        print(messenger_response)
+        st.markdown(messenger_response)
+    print("Response to add is: "+messenger_response)
+    st.session_state.messages.append({"role": "assistant", "content": messenger_response})
 
 if "openai_model" not in st.session_state:
     st.session_state["openai_model"] = "gpt-3.5-turbo"
@@ -60,6 +62,7 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 for message in st.session_state.messages:
+    print(message)
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
@@ -103,10 +106,9 @@ if in_file.exists():
     model="whisper-1", 
     file=audio_file
     )
-    print(transcript)
     with in_file.open("rb") as f:
         st.button(
-            transcript.text, on_click=send_message, args=['transcript.text']
+            transcript.text, on_click=send_message, args=[transcript.text]
         )
 if out_file.exists():
     with out_file.open("rb") as f:
