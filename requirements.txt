@@ -2,5 +2,10 @@ altair
 numpy
 pandas
 pydeck
+pydub
 streamlit
 openai
+SpeechRecognition
+streamlit-webrtc
+aiortc
+PyPDF2

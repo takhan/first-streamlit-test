@@ -25,10 +25,10 @@ def run():
         page_icon="👋",
     )
 
-    st.write("# :balloon: Welcome to Streamlit! 👋")
+    st.write("# :balloon: Welcome to this Interview Assistant! 👋")
 
-    st.sidebar.success("Select a demo above.")
-    uploaded_file = st.file_uploader("Choose a file")
+    st.sidebar.success("Select an interview type.")
+    uploaded_file = st.file_uploader("Upload your resume")
     if uploaded_file is not None:
         # creating a pdf reader object
         pdfReader = PyPDF2.PdfReader(uploaded_file)
@@ -40,19 +40,11 @@ def run():
         pageObj = pdfReader.pages[0]
         
         # extracting text from page
-        print(pageObj.extract_text())
-        
+        st.session_state["resume"] = pageObj.extract_text()
     st.markdown(
         """
-        Streamlit is an open-source app framework built specifically for
-        Machine Learning and Data Science projects.
-        **👈 Select a demo from the sidebar** to see some examples
-        of what Streamlit can do!
-        ### Want to learn more?
-        - Check out [streamlit.io](https://streamlit.io)
-        - Jump into our [documentation](https://docs.streamlit.io)
-        - Ask a question in our [community
-          forums](https://discuss.streamlit.io)
+        Welcome to my interview assistant!
+        **👈 Select an interview type from the sidebar**!
         ### See more complex demos
         - Use a neural net to [analyze the Udacity Self-driving Car Image
           Dataset](https://github.com/streamlit/demo-self-driving)

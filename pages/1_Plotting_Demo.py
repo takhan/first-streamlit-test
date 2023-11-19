@@ -17,7 +17,7 @@ import streamlit as st
 import time
 import queue
 import pydub
-import speech_recognition as sr
+#import speech_recognition as sr
 from aiortc.contrib.media import MediaRecorder
 import uuid
 from pathlib import Path
