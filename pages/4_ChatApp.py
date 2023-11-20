@@ -3,7 +3,7 @@ import random
 import time
 import openai
 #import speech_recognition as sr
-from streamlit_webrtc import webrtc_streamer, WebRtcMode
+from streamlit_webrtc import webrtc_streamer, WebRtcMode, VideoHTMLAttributes, AudioHTMLAttributes
 from aiortc.contrib.media import MediaRecorder
 import uuid
 from pathlib import Path
@@ -109,6 +109,12 @@ st.divider()
 webrtc_streamer(
     key="record",
     mode=WebRtcMode.SENDRECV,
+    audio_html_attrs=AudioHTMLAttributes(
+        muted=True
+    ),
+    #video_html_attrs=VideoHTMLAttributes(
+        #muted=True
+    #),
     rtc_configuration={"iceServers": get_ice_servers()},
     media_stream_constraints={
         "video": False,
