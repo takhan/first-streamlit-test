@@ -36,6 +36,26 @@ def create_questions():
     sample = random.sample(question_list, 3)
     return ', '.join(sample)
 
+def evaluate(transcript):
+    criteria = "You are a hiring manager tasked with evaluating an interview transcript to determine how the candidate performed on an interview. When the user sends you an interview transcript, respond with an evaluation of the candidate's performance based on the following criteria. Criteria -> Did the candidate show evidence of impressive, tangible accomplishments? Did the candidate communicate clearly, concisely, and confidently? Did the candidate demonstrate their personality and values?"
+    interview = "Transcript:\n"
+    for message in transcript:
+        if message["role"] is "user":
+            interview += "Candidate: "
+            interview += message["content"]
+            interview += "\n"
+        if message["role"] is "assistant":
+            interview += "Interviewer: "
+            interview += message["content"]
+            interview += "\n"
+    print(interview)
+    response = client.chat.completions.create(
+        model=st.session_state["openai_model"],
+        messages = [{"role":"system", "content":criteria}, {"role":"user", "content":interview}]
+    )
+    print(response.model_dump()['choices'][0]['message']['content'])
+    return response.model_dump()['choices'][0]['message']['content']
+
 def in_recorder_factory() -> MediaRecorder:
     return MediaRecorder(
         str(in_file), format="mp4"
@@ -62,8 +82,7 @@ def ai_response():
         ],   
     )
     messenger_response = response.model_dump()['choices'][0]['message']['content']
-    print(messenger_response)
-    print("Response to add is: "+messenger_response)
+  
     st.session_state.messages.append({"role": "assistant", "content": messenger_response})
     with st.chat_message("assistant"):
         st.markdown(messenger_response)
@@ -78,7 +97,7 @@ if "messages" not in st.session_state:
     st.session_state.messages.append({"role": "system", "content": f"You are interviewing me for a job. Ask me one of the following interview questions at random until you have asked 5 questions. Based on my response to the questions, ask a follow up question if appropriate and then move on to the next question. After asking all 3 questions from the list, thank me for my time and end the interview. Everything after the right arrow (->) is an interview question. Interview Questions -> [{questions}] "})
     
 for message in st.session_state.messages:
-    print(message)
+    #print(message)
     if message["role"] is not "system":
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
@@ -101,7 +120,7 @@ if prompt := st.chat_input("Or Type Instead!"):
             ],   
         )
         full_response = response.model_dump()['choices'][0]['message']['content']
-        print(full_response)
+        #print(full_response)
         #message_placeholder.markdown(full_response + "▌")
         message_placeholder.markdown(full_response)
     st.session_state.messages.append({"role": "assistant", "content": full_response})
@@ -138,3 +157,4 @@ if out_file.exists():
         st.download_button(
             "Download the recorded video with video filter", f, "output.flv"
         )
+st.button("Evaluate Me!", on_click=evaluate, args=[st.session_state.messages])
