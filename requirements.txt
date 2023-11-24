@@ -5,11 +5,8 @@ pydeck
 pydub
 streamlit
 openai
-SpeechRecognition
-streamlit-webrtc
 aiortc
 PyPDF2
-twilio
 streamlit_modal
 audio_recorder_streamlit
 st_audiorec
