@@ -23,6 +23,10 @@ import streamlit as st
 from twilio.base.exceptions import TwilioRestException
 from twilio.rest import Client
 
+from io import BytesIO
+from gtts import gTTS, gTTSError
+from elevenlabs import generate, play
+
 logger = logging.getLogger(__name__)
 
 
@@ -65,3 +69,24 @@ def get_ice_servers():
 
     return token.ice_servers
 
+def show_audio_player(ai_content: str) -> None:
+    sound_file = BytesIO()
+    try:
+        tts = gTTS(text=ai_content, lang="en")
+        tts.write_to_fp(sound_file)
+        st.write("To Hear The Voice Of AI Press Play")
+        st.audio(sound_file)
+    except gTTSError as err:
+        st.error(err)
+
+def generate_audio(ai_content: str) -> None:
+    try:
+        audio = generate(
+        text=ai_content,
+        voice="Bella",
+        model="eleven_monolingual_v1"
+        )
+        st.write("To Hear The Voice Of AI Press Play")
+        st.audio(audio)
+    except Exception as err:
+        st.error(err)

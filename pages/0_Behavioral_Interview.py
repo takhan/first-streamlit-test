@@ -8,7 +8,10 @@ from aiortc.contrib.media import MediaRecorder
 import uuid
 from pathlib import Path
 from utils import get_ice_servers
+from utils import show_audio_player, generate_audio
 from openai import OpenAI
+from streamlit_modal import Modal
+from audio_recorder_streamlit import audio_recorder
 
 st.title("Interview Chat")
 client = openai.OpenAI()
@@ -17,7 +20,7 @@ client = openai.OpenAI()
 RECORD_DIR = Path("./records")
 RECORD_DIR.mkdir(exist_ok=True)
 
-counter = 0
+
 if "prefix" not in st.session_state:
     st.session_state["prefix"] = str(uuid.uuid4())
     #print(st.session_state["resume"])
@@ -31,7 +34,9 @@ def create_questions():
         "Tell me about a time you dealt with a tough problem?",
         "Walk me through your resume?",
         "Tell me about a time you had to convince someone to change their mind about something important to them?",
-        "Tell me about a time you led a team. How would you describe your leadership style?"
+        "Tell me about a time you led a team. How would you describe your leadership style?",
+        "Why are you interested in this role?",
+        ""
         ]
     sample = random.sample(question_list, 3)
     return ', '.join(sample)
@@ -40,21 +45,22 @@ def evaluate(transcript):
     criteria = "You are a hiring manager tasked with evaluating an interview transcript to determine how the candidate performed on an interview. When the user sends you an interview transcript, respond with an evaluation of the candidate's performance based on the following criteria. Criteria -> Did the candidate show evidence of impressive, tangible accomplishments? Did the candidate communicate clearly, concisely, and confidently? Did the candidate demonstrate their personality and values?"
     interview = "Transcript:\n"
     for message in transcript:
-        if message["role"] is "user":
+        if message["role"] == "user":
             interview += "Candidate: "
             interview += message["content"]
             interview += "\n"
-        if message["role"] is "assistant":
+        if message["role"] == "assistant":
             interview += "Interviewer: "
             interview += message["content"]
             interview += "\n"
-    print(interview)
+    #print(interview)
     response = client.chat.completions.create(
         model=st.session_state["openai_model"],
         messages = [{"role":"system", "content":criteria}, {"role":"user", "content":interview}]
     )
-    print(response.model_dump()['choices'][0]['message']['content'])
-    return response.model_dump()['choices'][0]['message']['content']
+    
+    st.session_state.evaluation = response.model_dump()['choices'][0]['message']['content']
+    #return response.model_dump()['choices'][0]['message']['content']
 
 def in_recorder_factory() -> MediaRecorder:
     return MediaRecorder(
@@ -86,7 +92,22 @@ def ai_response():
     st.session_state.messages.append({"role": "assistant", "content": messenger_response})
     with st.chat_message("assistant"):
         st.markdown(messenger_response)
+        st.divider()
+        generate_audio(messenger_response)
  
+def markdown_messages():
+    with st.container():
+        for message in st.session_state.messages:
+            if message["role"] != "system" and not message["content"].startswith("///"):
+                if message["role"] == "assistant":
+                    with st.chat_message(message["role"]):
+                        st.markdown(message["content"])
+                        st.divider()
+                        generate_audio(message["content"])
+                else:
+                    with st.chat_message(message["role"]):
+                        st.markdown(message["content"])
+
 
 if "openai_model" not in st.session_state:
     st.session_state["openai_model"] = "gpt-3.5-turbo"
@@ -94,53 +115,56 @@ if "openai_model" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
     questions = create_questions()
-    st.session_state.messages.append({"role": "system", "content": f"You are interviewing me for a job. Ask me one of the following interview questions at random until you have asked 5 questions. Based on my response to the questions, ask a follow up question if appropriate and then move on to the next question. After asking all 3 questions from the list, thank me for my time and end the interview. Everything after the right arrow (->) is an interview question. Interview Questions -> [{questions}] "})
-    
-for message in st.session_state.messages:
+    st.session_state.messages.append({"role": "system", "content": f"You are interviewing me for a job. Begin the interview by greeting me. Then, ask me one of the following interview questions at random until you have asked 5 questions. Based on my response to the questions, ask a follow up question if appropriate and then move on to the next question. After asking all 3 questions from the list, thank me for my time and end the interview. Everything after the right arrow (->) is an interview question. Interview Questions -> [{questions}] "})
+    st.session_state.messages.append({"role": "user", "content":"/// Hello! I'm excited to be interviewing today. I'm ready to get started when you are"})
+    ai_response()
+    #response = client.chat.completions.create(
+            #model=st.session_state["openai_model"],
+            #messages=[
+                #{"role": m["role"], "content": m["content"]}
+                #for m in st.session_state.messages
+            #],   
+        #)
+    #full_response = response.model_dump()['choices'][0]['message']['content']
+    #print(full_response)
+    #message_placeholder.markdown(full_response + "▌")
+    #with st.chat_message("assistant"):
+        #st.markdown(full_response)
+
+
+#for message in st.session_state.messages:
     #print(message)
-    if message["role"] is not "system":
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+    #if message["role"] != "system" and not message["content"].startswith("///"):
+        #with st.chat_message(message["role"]):
+            #st.markdown(message["content"])
 
+#if prompt := st.chat_input("Or Type Instead!"):
+    #send_message(prompt)
+audio_bytes = audio_recorder(energy_threshold=(-1.0, 1.0),
+  pause_threshold=3.0,)
+if audio_bytes and audio_bytes is not None:
+    st.audio(audio_bytes, format="audio/wav")
+    print(type(audio_bytes))
+    transcript = client.audio.transcriptions.create(
+    model="whisper-1", 
+    file=audio_bytes
+    )
+    send_message(transcript.text)
 
-if prompt := st.chat_input("Or Type Instead!"):
-    
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
-
-    with st.chat_message("assistant"):
-        message_placeholder = st.empty()
-        full_response = ""
-        response = client.chat.completions.create(
-            model=st.session_state["openai_model"],
-            messages=[
-                {"role": m["role"], "content": m["content"]}
-                for m in st.session_state.messages
-            ],   
-        )
-        full_response = response.model_dump()['choices'][0]['message']['content']
-        #print(full_response)
-        #message_placeholder.markdown(full_response + "▌")
-        message_placeholder.markdown(full_response)
-    st.session_state.messages.append({"role": "assistant", "content": full_response})
-st.divider()
-webrtc_streamer(
-    key="record",
-    mode=WebRtcMode.SENDRECV,
-    audio_html_attrs=AudioHTMLAttributes(
-        muted=True
-    ),
-    #video_html_attrs=VideoHTMLAttributes(
+#webrtc_streamer(
+    #key="record",
+    #mode=WebRtcMode.SENDRECV,
+    #audio_html_attrs=AudioHTMLAttributes(
         #muted=True
     #),
-    rtc_configuration={"iceServers": get_ice_servers()},
-    media_stream_constraints={
-        "video": False,
-        "audio": True,
-    },
-    in_recorder_factory=in_recorder_factory,
-)
+  
+    #rtc_configuration={"iceServers": get_ice_servers()},
+    #media_stream_constraints={
+        #"video": False,
+        #"audio": True,
+    #},
+    #in_recorder_factory=in_recorder_factory,
+#)  
 
 if in_file.exists():
     audio_file= open(in_file, "rb")
@@ -157,4 +181,8 @@ if out_file.exists():
         st.download_button(
             "Download the recorded video with video filter", f, "output.flv"
         )
-st.button("Evaluate Me!", on_click=evaluate, args=[st.session_state.messages])
+open_modal = st.button("Evaluate Me!", on_click=evaluate, args=[st.session_state.messages])
+modal = Modal(key="Evaluation", title="Evaluation")
+if open_modal:
+    with modal.container():
+                st.markdown(st.session_state.evaluation)
