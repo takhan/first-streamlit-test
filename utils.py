@@ -25,7 +25,7 @@ from twilio.rest import Client
 
 from io import BytesIO
 from gtts import gTTS, gTTSError
-from elevenlabs import generate, play
+from elevenlabs import generate, play, set_api_key
 
 logger = logging.getLogger(__name__)
 
@@ -79,14 +79,16 @@ def show_audio_player(ai_content: str) -> None:
     except gTTSError as err:
         st.error(err)
 
-def generate_audio(ai_content: str) -> None:
+def generate_audio(ai_content: str):
+    set_api_key("eff9361459664821d23f7bb26246a31a")
     try:
         audio = generate(
         text=ai_content,
         voice="Bella",
         model="eleven_monolingual_v1"
         )
-        st.write("To Hear The Voice Of AI Press Play")
-        st.audio(audio)
+        #st.write("To Hear The Voice Of AI Press Play")
+        return audio
+        #st.audio(audio)
     except Exception as err:
         st.error(err)

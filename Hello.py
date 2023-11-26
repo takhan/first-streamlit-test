@@ -75,11 +75,5 @@ def run():
                  ' will be displayed below this message as soon as it has'
                  ' been processed. [This informative message is not part of'
                  ' the audio recorder and can be removed easily] 🎈')
-
-    if wav_audio_data is not None:
-        # display audio data as received on the Python side
-        col_playback, col_space = st.columns([0.58,0.42])
-        with col_playback:
-            st.audio(wav_audio_data, format='audio/wav')
 if __name__ == "__main__":
     run()

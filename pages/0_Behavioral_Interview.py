@@ -12,6 +12,7 @@ from utils import show_audio_player, generate_audio
 from openai import OpenAI
 from streamlit_modal import Modal
 from audio_recorder_streamlit import audio_recorder
+from st_audiorec import st_audiorec
 
 st.title("Interview Chat")
 client = openai.OpenAI()
@@ -20,7 +21,6 @@ client = openai.OpenAI()
 RECORD_DIR = Path("./records")
 RECORD_DIR.mkdir(exist_ok=True)
 
-
 if "prefix" not in st.session_state:
     st.session_state["prefix"] = str(uuid.uuid4())
     #print(st.session_state["resume"])
@@ -28,21 +28,34 @@ prefix = st.session_state["prefix"]
 in_file = RECORD_DIR / f"{prefix}_input.mp4"
 out_file = RECORD_DIR / f"{prefix}_output.mp4"
 
+if "counter" not in st.session_state:
+    st.session_state["counter"] = 0
+else:
+    st.session_state["counter"] += 1
+
+message_container = st.container()
+
 def create_questions():
     question_list = [
+        "Tell me about a time you had to work on a challenging problem involving user acquisition?", 
+        "Tell me something you’ve worked on that you are very proud of?",
+        "Walk me through your resume?",
+        "What is a product you use that you are a fan and what makes it a good product?",
+        "Why are you interested in this role?"
+        ]
+    generic_list=[
         "Describe a time when you had to change the mind of a client or colleague about something important?", 
         "Tell me about a time you dealt with a tough problem?",
         "Walk me through your resume?",
         "Tell me about a time you had to convince someone to change their mind about something important to them?",
         "Tell me about a time you led a team. How would you describe your leadership style?",
-        "Why are you interested in this role?",
-        ""
-        ]
+        "Why are you interested in this role?"
+    ]
     sample = random.sample(question_list, 3)
     return ', '.join(sample)
 
 def evaluate(transcript):
-    criteria = "You are a hiring manager tasked with evaluating an interview transcript to determine how the candidate performed on an interview. When the user sends you an interview transcript, respond with an evaluation of the candidate's performance based on the following criteria. Criteria -> Did the candidate show evidence of impressive, tangible accomplishments? Did the candidate communicate clearly, concisely, and confidently? Did the candidate demonstrate their personality and values?"
+    criteria = "You are a hiring manager tasked with evaluating an interview transcript to determine how the candidate performed on an interview. When the user sends you an interview transcript, respond with an evaluation of the candidate's performance based on the following criteria. Criteria -> Did the candidate show evidence of impressive, tangible accomplishments? Did the candidate communicate clearly, concisely, and confidently? Did the candidate demonstrate their personality and values? For each of the parts of the criteria, provide feedback about what the candidate did well as well as areas for improvement."
     interview = "Transcript:\n"
     for message in transcript:
         if message["role"] == "user":
@@ -55,7 +68,7 @@ def evaluate(transcript):
             interview += "\n"
     #print(interview)
     response = client.chat.completions.create(
-        model=st.session_state["openai_model"],
+        model="gpt-4",
         messages = [{"role":"system", "content":criteria}, {"role":"user", "content":interview}]
     )
     
@@ -73,8 +86,8 @@ def out_recorder_factory() -> MediaRecorder:
 
 def send_message(transcript):
     st.session_state.messages.append({"role": "user", "content": transcript})
-    with st.chat_message("user"):
-        st.markdown(transcript)
+    #with st.chat_message("user"):
+        #st.markdown(transcript)
     ai_response()
     
 
@@ -90,22 +103,24 @@ def ai_response():
     messenger_response = response.model_dump()['choices'][0]['message']['content']
   
     st.session_state.messages.append({"role": "assistant", "content": messenger_response})
-    with st.chat_message("assistant"):
-        st.markdown(messenger_response)
-        st.divider()
-        generate_audio(messenger_response)
+    #with st.chat_message("assistant"):
+        #st.markdown(messenger_response)
+        #st.divider()
+        #generate_audio(messenger_response)
  
 def markdown_messages():
     with st.container():
         for message in st.session_state.messages:
             if message["role"] != "system" and not message["content"].startswith("///"):
                 if message["role"] == "assistant":
-                    with st.chat_message(message["role"]):
+                    with message_container.chat_message(message["role"]):
                         st.markdown(message["content"])
                         st.divider()
-                        generate_audio(message["content"])
+                        audio = generate_audio(message["content"])
+                        st.markdown("To Hear The Voice Of AI Press Play")
+                        st.audio(audio)
                 else:
-                    with st.chat_message(message["role"]):
+                    with message_container.chat_message(message["role"]):
                         st.markdown(message["content"])
 
 
@@ -140,42 +155,47 @@ if "messages" not in st.session_state:
 
 #if prompt := st.chat_input("Or Type Instead!"):
     #send_message(prompt)
-audio_bytes = audio_recorder(energy_threshold=(-1.0, 1.0),
-  pause_threshold=3.0,)
-if audio_bytes and audio_bytes is not None:
-    st.audio(audio_bytes, format="audio/wav")
-    print(type(audio_bytes))
-    transcript = client.audio.transcriptions.create(
-    model="whisper-1", 
-    file=audio_bytes
-    )
-    send_message(transcript.text)
+#audio_bytes = audio_recorder(energy_threshold=(-1.0, 1.0),
+  #pause_threshold=3.0,)
+#audio_bytes = st_audiorec()
+#if audio_bytes and audio_bytes is not None and st.session_state["counter"]>2:
+    #markdown_messages()
+    #st.audio(audio_bytes, format="audio/wav")
+    #transcript = client.audio.transcriptions.create(
+    #model="whisper-1", 
+    #file=audio_bytes
+    #)
+    #send_message(transcript.text)
 
-#webrtc_streamer(
-    #key="record",
-    #mode=WebRtcMode.SENDRECV,
-    #audio_html_attrs=AudioHTMLAttributes(
-        #muted=True
-    #),
+webrtc_streamer(
+    key="record",
+    mode=WebRtcMode.SENDRECV,
+    audio_html_attrs=AudioHTMLAttributes(
+        muted=True
+    ),
   
-    #rtc_configuration={"iceServers": get_ice_servers()},
-    #media_stream_constraints={
-        #"video": False,
-        #"audio": True,
-    #},
-    #in_recorder_factory=in_recorder_factory,
-#)  
+    rtc_configuration={"iceServers": get_ice_servers()},
+    media_stream_constraints={
+        "video": False,
+        "audio": True,
+    },
+    in_recorder_factory=in_recorder_factory,
+)  
+markdown_messages()
 
 if in_file.exists():
     audio_file= open(in_file, "rb")
-    transcript = client.audio.transcriptions.create(
-    model="whisper-1", 
-    file=audio_file
-    )
-    with in_file.open("rb") as f:
-        st.button(
-            transcript.text, on_click=send_message, args=[transcript.text]
+    try:
+        transcript = client.audio.transcriptions.create(
+        model="whisper-1", 
+        file=audio_file
         )
+        st.markdown(transcript.text)
+        st.button(
+            "Send Message", on_click=send_message, args=[transcript.text]
+        )
+    except Exception as err:
+        print(err)
 if out_file.exists():
     with out_file.open("rb") as f:
         st.download_button(
