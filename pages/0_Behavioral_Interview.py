@@ -11,8 +11,8 @@ from utils import get_ice_servers
 from utils import show_audio_player, generate_audio
 from openai import OpenAI
 from streamlit_modal import Modal
-from audio_recorder_streamlit import audio_recorder
-from st_audiorec import st_audiorec
+#from audio_recorder_streamlit import audio_recorder
+#from st_audiorec import st_audiorec
 
 st.title("Interview Chat")
 client = openai.OpenAI()

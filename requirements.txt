@@ -4,11 +4,11 @@ pandas
 pydeck
 pydub
 streamlit
+streamlit_webrtc
 openai
 aiortc
-PyPDF2
+twilio
 streamlit_modal
 audio_recorder_streamlit
-st_audiorec
 gtts
 elevenlabs

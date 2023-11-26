@@ -14,9 +14,6 @@
 
 import streamlit as st
 from streamlit.logger import get_logger
-from audio_recorder_streamlit import audio_recorder
-from st_audiorec import st_audiorec
-import PyPDF2
 import pandas as pd
 LOGGER = get_logger(__name__)
 
@@ -60,20 +57,5 @@ def run():
         '[GitHub](https://github.com/stefanrmmr/streamlit-audio-recorder)')
     st.write('\n\n')
 
-    # TUTORIAL: How to use STREAMLIT AUDIO RECORDER?
-    # by calling this function an instance of the audio recorder is created
-    # once a recording is completed, audio data will be saved to wav_audio_data
-
-    wav_audio_data = st_audiorec() # tadaaaa! yes, that's it! :D
-
-    # add some spacing and informative messages
-    col_info, col_space = st.columns([0.57, 0.43])
-    with col_info:
-        st.write('\n')  # add vertical spacer
-        st.write('\n')  # add vertical spacer
-        st.write('The .wav audio data, as received in the backend Python code,'
-                 ' will be displayed below this message as soon as it has'
-                 ' been processed. [This informative message is not part of'
-                 ' the audio recorder and can be removed easily] 🎈')
 if __name__ == "__main__":
     run()
