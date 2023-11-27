@@ -43,6 +43,11 @@ def create_questions():
         "What is a product you use that you are a fan and what makes it a good product?",
         "Why are you interested in this role?"
         ]
+    rippling_list = [
+        "Why are you interested in this role?",
+        "Tell me about one of your past experiences that would be most relevant to working on growth and user acquisition?",
+        "Why do you want to work and Rippling and why now?"
+    ]
     generic_list=[
         "Describe a time when you had to change the mind of a client or colleague about something important?", 
         "Tell me about a time you dealt with a tough problem?",
@@ -51,7 +56,7 @@ def create_questions():
         "Tell me about a time you led a team. How would you describe your leadership style?",
         "Why are you interested in this role?"
     ]
-    sample = random.sample(question_list, 3)
+    sample = random.sample(rippling_list, 3)
     return ', '.join(sample)
 
 def evaluate(transcript):
@@ -115,10 +120,10 @@ def markdown_messages():
                 if message["role"] == "assistant":
                     with message_container.chat_message(message["role"]):
                         st.markdown(message["content"])
-                        st.divider()
-                        audio = generate_audio(message["content"])
-                        st.markdown("To Hear The Voice Of AI Press Play")
-                        st.audio(audio)
+                        #st.divider()
+                        #audio = generate_audio(message["content"])
+                        #st.markdown("To Hear The Voice Of AI Press Play")
+                        #st.audio(audio)
                 else:
                     with message_container.chat_message(message["role"]):
                         st.markdown(message["content"])
@@ -130,7 +135,7 @@ if "openai_model" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
     questions = create_questions()
-    st.session_state.messages.append({"role": "system", "content": f"You are interviewing me for a job. Begin the interview by greeting me. Then, ask me one of the following interview questions at random until you have asked 5 questions. Based on my response to the questions, ask a follow up question if appropriate and then move on to the next question. After asking all 3 questions from the list, thank me for my time and end the interview. Everything after the right arrow (->) is an interview question. Interview Questions -> [{questions}] "})
+    st.session_state.messages.append({"role": "system", "content": f"You are interviewing me for a job at Rippling, a company that makes HR, payroll, and workforce management software. Begin the interview by greeting me. Then, ask me one of the following interview questions at random until you have asked 3 questions. Based on my response to the questions, ask a follow up question if appropriate and then move on to the next question. Some examples of good follow up questions include asking me for more details about what I described, asking for the outcome of a situation I described, or asking me any relevant clarifying questions. Do not ask more than two follow-up questions and don't ask any questions that the user has already answered. After asking all 3 questions from the list, thank me for my time and end the interview. Everything after the right arrow (->) is an interview question. Interview Questions -> [{questions}] "})
     st.session_state.messages.append({"role": "user", "content":"/// Hello! I'm excited to be interviewing today. I'm ready to get started when you are"})
     ai_response()
     #response = client.chat.completions.create(
