@@ -27,6 +27,10 @@ from io import BytesIO
 from gtts import gTTS, gTTSError
 from elevenlabs import generate, play, set_api_key
 
+from google.oauth2 import id_token
+from google.auth.transport import requests
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -92,3 +96,23 @@ def generate_audio(ai_content: str):
         #st.audio(audio)
     except Exception as err:
         st.error(err)
+
+def get_google_id_token(auth_code, client_id):
+    try:
+        token = id_token.fetch_id_token(requests.Request(), client_id)
+        return token
+    except ValueError as e:
+        st.error(f"Error retrieving ID token: {e}")
+
+async def write_access_token(client,
+                             redirect_uri,
+                             code):
+    token = await client.get_access_token(code, redirect_uri)
+    return token
+
+
+async def get_email(client,
+                    token):
+    email = await client.get_id_email(token)
+    print(email)
+    return email

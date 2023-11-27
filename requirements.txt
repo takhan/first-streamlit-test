@@ -12,3 +12,5 @@ streamlit_modal
 audio_recorder_streamlit
 gtts
 elevenlabs
+google-auth
+httpx-oauth==0.3.5
