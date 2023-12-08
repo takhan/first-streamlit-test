@@ -5,7 +5,7 @@ pydeck
 pydub
 streamlit
 streamlit_webrtc
-openai==1.3.7
+openai==1.3.5
 aiortc
 twilio
 streamlit_modal
