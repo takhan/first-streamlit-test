@@ -94,23 +94,24 @@ def run():
         """
         Welcome to my interview assistant!
         **👈 Select an interview type from the sidebar**!
-        ### See more complex demos
-        - Use a neural net to [analyze the Udacity Self-driving Car Image
-          Dataset](https://github.com/streamlit/demo-self-driving)
-        - Explore a [New York City rideshare dataset](https://github.com/streamlit/demo-uber-nyc-pickups)
+        ### Choose an Interview Type
+        - Behavioral: Answer questions about your past experiences
+        - Case: Walk through a business situation
     """
     )
-    
+    option = st.selectbox(
+        'Choose Interview Type',
+        ('Behavioral', 'Case')
+    )
+    st.button('Set Interview Type', on_click=set_interview_type, args=[option])
     if "email" in st.session_state:
         st.markdown(
             st.session_state["email"]
         )
-    st.markdown('Implemented by '
-        '[Stefan Rummer](https://www.linkedin.com/in/stefanrmmr/) - '
-        'view project source code on '
-                
-        '[GitHub](https://github.com/stefanrmmr/streamlit-audio-recorder)')
     st.write('\n\n')
+
+def set_interview_type(option):
+    st.session_state["interview_type"] = option
 
 if __name__ == "__main__":
     run()

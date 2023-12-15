@@ -198,6 +198,7 @@ if in_file.exists():
         model="whisper-1", 
         file=audio_file
         )
+        print("Audio transcribed!")
         st.markdown(transcript.text)
         st.button(
             "Send Message", on_click=send_message, args=[transcript.text]

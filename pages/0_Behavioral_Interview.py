@@ -21,6 +21,13 @@ client = openai.OpenAI()
 RECORD_DIR = Path("./records")
 RECORD_DIR.mkdir(exist_ok=True)
 
+case = "You are interviewing me by asking the following case style interview question. "+\
+"Question: Our client is an ice Skating Rink whose revenue has Decreased by 30% compared to last year. How would you go about figuring out where the problem is? "+\
+"If they start by describing how they would approach the problem, tell them if their approach makes sense and then ask what component they would look at first. "+\
+"If they have no idea how to approach this problem, suggest that they look at one of the two components of revenue which are average spend and volume. "+\
+"If they ask for specific data, mention that there is no specific data available and you’re just interested in seeing how they would approach this problem. "+\
+"As they describe factors that might be causing the problem, continue asking them if there’s anything else that could explain it. Once they no longer have any more ideas, thank them for their time and end the interview. "
+
 if "prefix" not in st.session_state:
     st.session_state["prefix"] = str(uuid.uuid4())
     #print(st.session_state["resume"])
@@ -138,9 +145,13 @@ if "openai_model" not in st.session_state:
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
-    questions = create_questions()
-    st.session_state.messages.append({"role": "system", "content": f"You are interviewing me for a job at Rippling, a company that makes HR, payroll, and workforce management software. Begin the interview by greeting me. Then, ask me one of the following interview questions at random until you have asked 3 questions. Based on my response to the questions, ask a follow up question if appropriate and then move on to the next question. Some examples of good follow up questions include asking me for more details about what I described, asking for the outcome of a situation I described, or asking me any relevant clarifying questions. Do not ask more than two follow-up questions and don't ask any questions that the user has already answered. After asking all 3 questions from the list, thank me for my time and end the interview. Everything after the right arrow (->) is an interview question. Interview Questions -> [{questions}] "})
-    st.session_state.messages.append({"role": "user", "content":"/// Hello! I'm ready to get started when you are"})
+    if st.session_state["interview_type"] == "Behavioral":
+        questions = create_questions()
+        st.session_state.messages.append({"role": "system", "content": f"You are interviewing me for a job at Rippling, a company that makes HR, payroll, and workforce management software. Begin the interview by greeting me. Then, ask me one of the following interview questions at random until you have asked 3 questions. Based on my response to the questions, ask a follow up question if appropriate and then move on to the next question. Some examples of good follow up questions include asking me for more details about what I described, asking for the outcome of a situation I described, or asking me any relevant clarifying questions. Do not ask more than two follow-up questions and don't ask any questions that the user has already answered. After asking all 3 questions from the list, thank me for my time and end the interview. Everything after the right arrow (->) is an interview question. Interview Questions -> [{questions}] "})
+        st.session_state.messages.append({"role": "user", "content":"/// Hello! I'm ready to get started when you are"})
+    else:
+        st.session_state.messages.append({"role": "system", "content": case})
+        st.session_state.messages.append({"role": "user", "content":"/// Hello! I'm ready to get started when you are"})
     ai_response()
     #response = client.chat.completions.create(
             #model=st.session_state["openai_model"],
