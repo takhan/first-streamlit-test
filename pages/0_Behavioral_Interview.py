@@ -9,6 +9,7 @@ import uuid
 from pathlib import Path
 from utils import get_ice_servers
 from utils import show_audio_player, generate_audio
+from cases import return_case, return_sales
 from openai import OpenAI
 from streamlit_modal import Modal
 #from audio_recorder_streamlit import audio_recorder
@@ -67,7 +68,7 @@ def create_questions():
         "Tell me about a time you led a team. How would you describe your leadership style?",
         "Why are you interested in this role?"
     ]
-    sample = random.sample(rippling_list, 3)
+    sample = random.sample(generic_list, 3)
     return ', '.join(sample)
 
 def evaluate(transcript):
@@ -142,29 +143,29 @@ def markdown_messages():
 
 if "openai_model" not in st.session_state:
     st.session_state["openai_model"] = "gpt-3.5-turbo"
-
+if "interview_type" not in st.session_state:
+    st.session_state["interview_type"] = "Behavioral"
 if "messages" not in st.session_state:
     st.session_state.messages = []
     if st.session_state["interview_type"] == "Behavioral":
         questions = create_questions()
         st.session_state.messages.append({"role": "system", "content": f"You are interviewing me for a job at Rippling, a company that makes HR, payroll, and workforce management software. Begin the interview by greeting me. Then, ask me one of the following interview questions at random until you have asked 3 questions. Based on my response to the questions, ask a follow up question if appropriate and then move on to the next question. Some examples of good follow up questions include asking me for more details about what I described, asking for the outcome of a situation I described, or asking me any relevant clarifying questions. Do not ask more than two follow-up questions and don't ask any questions that the user has already answered. After asking all 3 questions from the list, thank me for my time and end the interview. Everything after the right arrow (->) is an interview question. Interview Questions -> [{questions}] "})
         st.session_state.messages.append({"role": "user", "content":"/// Hello! I'm ready to get started when you are"})
-    else:
-        st.session_state.messages.append({"role": "system", "content": case})
+        ai_response()
+    elif st.session_state["interview_type"] == "Case":
+        mck = return_case()
+        print("Case Interview!!")
+        print(mck)
+        st.session_state.messages.append({"role": "system", "content": mck})
         st.session_state.messages.append({"role": "user", "content":"/// Hello! I'm ready to get started when you are"})
-    ai_response()
-    #response = client.chat.completions.create(
-            #model=st.session_state["openai_model"],
-            #messages=[
-                #{"role": m["role"], "content": m["content"]}
-                #for m in st.session_state.messages
-            #],   
-        #)
-    #full_response = response.model_dump()['choices'][0]['message']['content']
-    #print(full_response)
-    #message_placeholder.markdown(full_response + "▌")
-    #with st.chat_message("assistant"):
-        #st.markdown(full_response)
+        ai_response()
+    else:
+        sales = return_sales()
+        print(sales)
+        st.session_state.messages.append({"role": "system", "content": sales})
+        st.session_state.messages.append({"role": "user", "content":"/// Hello!"})
+        ai_response()
+ 
 
 
 #for message in st.session_state.messages:

@@ -17,6 +17,7 @@ import asyncio
 from streamlit.logger import get_logger
 import pandas as pd
 from google.oauth2 import id_token
+from google.cloud import firestore
 import google.auth.transport
 import requests
 from utils import get_google_id_token, write_access_token, get_email
@@ -36,7 +37,7 @@ def run():
         page_title="Hello",
         page_icon="👋",
     )
-    st.write("# :balloon: Welcome to this Interview Assistant! 👋")
+    st.write("# :balloon: Welcome to my Interview Prep Demo! 👋")
 
     st.sidebar.success("Select an interview type.")
     uploaded_file = st.file_uploader("Upload your resume")
@@ -93,7 +94,7 @@ def run():
     st.markdown(
         """
         Welcome to my interview assistant!
-        **👈 Select an interview type from the sidebar**!
+        ** Select an interview type from the drop down menu below **!
         ### Choose an Interview Type
         - Behavioral: Answer questions about your past experiences
         - Case: Walk through a business situation
@@ -101,14 +102,24 @@ def run():
     )
     option = st.selectbox(
         'Choose Interview Type',
-        ('Behavioral', 'Case')
+        ('Behavioral', 'Case', 'Sales')
     )
     st.button('Set Interview Type', on_click=set_interview_type, args=[option])
     if "email" in st.session_state:
         st.markdown(
             st.session_state["email"]
         )
+        db = firestore.Client.from_service_account_json("firestore-key.json")
+        # Create a reference to the Google post.
+        doc_ref = db.collection("users").document(st.session_state["email"])
+
+        doc_ref.set({"email": st.session_state["email"]})
+
     st.write('\n\n')
+    st.write("Sign up for a subscription to get access to : [link](https://buy.stripe.com/5kAfZM8OZ2wC9Ow5kk)")
+    # Authenticate to Firestore with the JSON account key.
+    
+
 
 def set_interview_type(option):
     st.session_state["interview_type"] = option

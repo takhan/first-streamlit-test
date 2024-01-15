@@ -26,6 +26,7 @@ from twilio.rest import Client
 from io import BytesIO
 from gtts import gTTS, gTTSError
 from elevenlabs import generate, play, set_api_key
+import elevenlabs
 
 from google.oauth2 import id_token
 from google.auth.transport import requests
@@ -86,9 +87,12 @@ def show_audio_player(ai_content: str) -> None:
 def generate_audio(ai_content: str):
     set_api_key("eff9361459664821d23f7bb26246a31a")
     try:
+        voices = elevenlabs.voices()
+        print("Voicessss")
+        print(voices)
         audio = generate(
         text=ai_content,
-        voice="Bella",
+        voice="Drew",
         model="eleven_monolingual_v1"
         )
         #st.write("To Hear The Voice Of AI Press Play")

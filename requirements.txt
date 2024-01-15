@@ -5,6 +5,7 @@ pydeck
 pydub
 streamlit
 streamlit_webrtc
+st-paywall
 openai
 aiortc
 twilio
@@ -13,4 +14,5 @@ audio_recorder_streamlit
 gtts
 elevenlabs
 google-auth
+google-cloud-firestore
 httpx-oauth
